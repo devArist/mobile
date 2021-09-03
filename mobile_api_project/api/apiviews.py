@@ -1,17 +1,19 @@
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import ListCreateAPIView, RetrieveDestroyAPIView
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.generics import CreateAPIView 
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from api import serializers
 from contacts import models as contacts_models
 
 
 class ContactsView(APIView):
     permission_classes = [IsAuthenticated]
-
+    authentication_classes = [TokenAuthentication]
     def get(self, request):
         contacts = contacts_models.Contact.objects.filter(
             user=request.user
@@ -36,6 +38,7 @@ class ContactsView(APIView):
 
 class ContactView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def get(self, request, pk):
         try:
@@ -72,31 +75,20 @@ class ContactView(APIView):
 
 
 
-class NotesView(ListCreateAPIView):
-    queryset = contacts_models.Note.objects.all()
-    serializer_class = serializers.NoteSerializer
-    permission_classes = [IsAuthenticated]
+# class NotesView(ListCreateAPIView):
+#     queryset = contacts_models.Note.objects.all()
+#     serializer_class = serializers.NoteSerializer
 
 
-class NoteView(RetrieveDestroyAPIView):
-    queryset = contacts_models.Note.objects.all()
-    serializer_class = serializers.NoteSerializer
-    permission_classes = [IsAuthenticated]
+
+# class NoteView(RetrieveDestroyAPIView):
+#     queryset = contacts_models.Note.objects.all()
+#     serializer_class = serializers.NoteSerializer
 
 
-class UserView(APIView):
-    def post(self, request):
-        last_name = request.data.get('last_name')
-        first_name = request.data.get('first_name')
-        email = request.data.get('email')
-        pwd1 = request.data.get('pwd1')
-        pwd2 = request.data.get('pwd2')
-
-        get_user_model().create_user(
-            last_name=last_name,
-            first_name=first_name,
-            username=email,
-            password=pwd1
-        )
-
-        return Response(status=status.HTTP_201_CREATED)
+@api_view(['POST'])
+def create_user_with_token(request):
+    last_name = request.POST.get('last_name')
+    first_name = request.POST.get('first_name')
+    email = request.POST.get('email')
+    
