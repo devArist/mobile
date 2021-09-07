@@ -21,16 +21,16 @@ class NoteSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
         class Meta:
             model = get_user_model()
-            fields = ('username', 'email', 'password')
+            fields = ('username', 'last_name', 'first_name', 'password')
             extra_kwargs = {'password': {'write_only': True}}
 
         def create(self, validated_data):
-            user = User(
-                email=validated_data['email'],
-                username=validated_data['username']
+            user = get_user_model()(
+                username=validated_data['username'],
+                last_name=validated_data['last_name'],
+                first_name=validated_data['first_name'],
             )
             user.set_password(validated_data['password'])
             user.save()
-            # Création de token a la création de l'utilisateur
-            Token.objects.create(user=user)
+            
             return user
